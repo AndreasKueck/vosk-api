@@ -15,6 +15,7 @@ dosiero = open('rezulto.txt','w')
 rez = "KOMENCO "
 pattern = re.compile(r'KOMENCO .+? FINO')
 patternfinrez = re.compile(r'\"text\" \: \".+?\"')
+tekstofina = ""
 
 wf = wave.open(sys.argv[1], "rb")
 if wf.getnchannels() != 1 or wf.getsampwidth() != 2 or wf.getcomptype() != "NONE":
@@ -45,7 +46,7 @@ while True:
 recfinrez = str(rec.FinalResult())
 
 for match in re.findall(patternfinrez, recfinrez):
-    tekstofina = str(match)
+    tekstofina = "" if tekstofina is None else match
 
 rez = rez + tekstofina + " FINO"
 
