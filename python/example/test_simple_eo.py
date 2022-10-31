@@ -2,6 +2,8 @@
 
 import wave
 import sys
+import json
+import re
 
 from vosk import Model, KaldiRecognizer, SetLogLevel
 
@@ -9,6 +11,10 @@ from vosk import Model, KaldiRecognizer, SetLogLevel
 SetLogLevel(0)
 
 dosiero = open('rezulto.txt','w')
+
+rez = "KOMENCO "
+pattern = re.compile(r'KOMENCO .+? FINO')
+patternfinrez = re.compile(r'\"text\" \: \".+?\"')
 
 wf = wave.open(sys.argv[1], "rb")
 if wf.getnchannels() != 1 or wf.getsampwidth() != 2 or wf.getcomptype() != "NONE":
@@ -23,17 +29,25 @@ model = Model(lang="eo")
 
 rec = KaldiRecognizer(model, wf.getframerate())
 rec.SetWords(True)
-rec.SetPartialWords(False)
+rec.SetPartialWords(True)
 
 while True:
     data = wf.readframes(4000)
     if len(data) == 0:
         break
     if rec.AcceptWaveform(data):
+        vc = json.loads(rec.Result())
         print(rec.Result())
-        dosiero.write(rec.Result())
+        rez = rez + str(vc['text'])
     else:
         print(rec.PartialResult())
-        dosiero.write(rec.PartialResult())
+                        
+recfinrez = str(rec.FinalResult())
 
-print(rec.FinalResult())
+for match in re.findall(patternfinrez, recfinrez):
+    tekstofina = str(match)
+
+rez = rez + tekstofina + " FINO"
+
+for match in re.findall(pattern, rez):
+    dosiero.write(match)
